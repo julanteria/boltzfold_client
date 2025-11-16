@@ -14,17 +14,15 @@ Lightweight Python client for the [BoltzFold](https://boltzfold.com) API - prote
 
 ## Installation
 
-```bash
-pip install boltzfold-client
-```
-
-Or install from source:
+Install from source:
 
 ```bash
 git clone https://github.com/julanteria/boltzfold_client.git
 cd boltzfold_client
 pip install -e .
 ```
+
+PyPI: coming soon
 
 ## Quick Start
 
