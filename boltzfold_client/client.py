@@ -102,7 +102,11 @@ def _create_payload(
     sequence: str,
     target_file_path: str | Path | None = None,
     target_url: str | None = None,
+    target_file_data: str | None = None,
+    target_file_name: str | None = None,
     length: str | tuple[int, int] | Iterable[int] | None = None,
+    length_min: int | None = None,
+    length_max: int | None = None,
     epitope: Mapping[str, Any] | None = None,
     num_designs: int | None = None,
     openfold_chains: Iterable[Mapping[str, Any]] | None = None,
@@ -110,6 +114,7 @@ def _create_payload(
     binder_sequence_path: str | Path | None = None,
     target_sequence: str | None = None,
     target_sequence_path: str | Path | None = None,
+    ligand: str | None = None,
     extra: Mapping[str, Any] | None = None,
 ) -> PredictionPayload:
     payload: MutableMapping[str, Any] = {"model": model, "sequence": sequence}
@@ -124,10 +129,22 @@ def _create_payload(
         filename, encoded = _encode_target_file(path)
         payload["target_file_name"] = filename
         payload["target_file_data"] = encoded
+    
+    # Support passing target file data directly (for benchmarking)
+    if target_file_data:
+        payload["target_file_data"] = target_file_data
+    if target_file_name:
+        payload["target_file_name"] = target_file_name
 
     length_spec = _normalize_length(length)
     if length_spec:
         payload["length"] = length_spec
+    
+    # Support explicit length_min and length_max (for BoltzGen)
+    if length_min is not None:
+        payload["length_min"] = length_min
+    if length_max is not None:
+        payload["length_max"] = length_max
 
     if epitope:
         payload["epitope"] = dict(epitope)
@@ -137,6 +154,10 @@ def _create_payload(
 
     if openfold_chains:
         payload["openfold_chains"] = [dict(chain) for chain in openfold_chains]
+    
+    # Support ligand SMILES (for Boltz)
+    if ligand:
+        payload["ligand"] = ligand
 
     binder_value = _resolve_sequence_field(
         label="binder",
@@ -203,7 +224,11 @@ class BoltzFoldClient:
         sequence: str,
         target_file_path: str | Path | None = None,
         target_url: str | None = None,
+        target_file_data: str | None = None,
+        target_file_name: str | None = None,
         length: str | tuple[int, int] | Iterable[int] | None = None,
+        length_min: int | None = None,
+        length_max: int | None = None,
         epitope: Mapping[str, Any] | None = None,
         num_designs: int | None = None,
         openfold_chains: Iterable[Mapping[str, Any]] | None = None,
@@ -211,6 +236,7 @@ class BoltzFoldClient:
         binder_sequence_path: str | Path | None = None,
         target_sequence: str | None = None,
         target_sequence_path: str | Path | None = None,
+        ligand: str | None = None,
         extra: Mapping[str, Any] | None = None,
     ) -> PredictionPayload:
         return _create_payload(
@@ -218,7 +244,11 @@ class BoltzFoldClient:
             sequence=sequence,
             target_file_path=target_file_path,
             target_url=target_url,
+            target_file_data=target_file_data,
+            target_file_name=target_file_name,
             length=length,
+            length_min=length_min,
+            length_max=length_max,
             epitope=epitope,
             num_designs=num_designs,
             openfold_chains=openfold_chains,
@@ -226,6 +256,7 @@ class BoltzFoldClient:
             binder_sequence_path=binder_sequence_path,
             target_sequence=target_sequence,
             target_sequence_path=target_sequence_path,
+            ligand=ligand,
             extra=extra,
         )
 

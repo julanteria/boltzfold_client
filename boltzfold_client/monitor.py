@@ -23,6 +23,15 @@ except ImportError:  # pragma: no cover - optional
 SPINNER_FRAMES = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
 
+def _is_notebook() -> bool:
+    """Detect if we're running in a Jupyter notebook."""
+    try:
+        from IPython import get_ipython
+        return get_ipython() is not None and 'IPKernelApp' in get_ipython().config
+    except (ImportError, AttributeError):
+        return False
+
+
 def _terminal_width(default: int = 40) -> int:
     try:
         return shutil.get_terminal_size().columns
@@ -38,11 +47,26 @@ class LiveJobPrinter:
     spinner_frames: Iterable[str] = SPINNER_FRAMES
     show_message: bool = True
     auto_clear: bool = True
+    use_logger: bool = False  # If True, use logger instead of print
+    logger_name: str = "boltzfold.monitor"
+    update_interval: float = 10.0  # Seconds between updates when using logger
 
     def __post_init__(self) -> None:
         self._spinner = itertools.cycle(self.spinner_frames)
+        self._last_update_time: float = 0.0
+        if self.use_logger:
+            import logging
+            self._logger = logging.getLogger(self.logger_name)
+        else:
+            self._logger = None
 
     def render(self, status: JobStatus, elapsed_seconds: float, extra: str | None = None) -> None:
+        # Use simple logger output if requested
+        if self.use_logger and self._logger:
+            self._render_with_logger(status, elapsed_seconds, extra)
+            return
+        
+        # Otherwise use fancy box rendering
         frame = next(self._spinner)
         width = max(52, min(96, _terminal_width()))
         inner = width - 2
@@ -74,6 +98,26 @@ class LiveJobPrinter:
             print(extra)
             if not extra.endswith("\n"):
                 print()
+    
+    def _render_with_logger(self, status: JobStatus, elapsed_seconds: float, extra: str | None = None) -> None:
+        """Simplified render using logger instead of fancy boxes."""
+        if not self._logger:
+            return
+        
+        current_time = time.time()
+        
+        # Log periodically during running/queued states
+        if status.status in ("running", "queued"):
+            if current_time - self._last_update_time >= self.update_interval:
+                self._logger.info("[%s] %s | Elapsed: %.1fs", 
+                                 status.job_id[:8], status.status, elapsed_seconds)
+                self._last_update_time = current_time
+        elif status.status == "succeeded":
+            # Always log terminal states
+            self._logger.info("✓ Job %s succeeded (%.1fs)", status.job_id[:8], elapsed_seconds)
+        elif status.status == "failed":
+            msg = f" - {status.message}" if status.message else ""
+            self._logger.error("✗ Job %s failed (%.1fs)%s", status.job_id[:8], elapsed_seconds, msg)
 
     def _clear(self) -> None:
         if _ipython_clear is not None:
