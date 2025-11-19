@@ -65,7 +65,7 @@ class LiveJobPrinter:
         if self.use_logger and self._logger:
             self._render_with_logger(status, elapsed_seconds, extra)
             return
-        
+
         # Otherwise use fancy box rendering
         frame = next(self._spinner)
         width = max(52, min(96, _terminal_width()))
@@ -98,18 +98,18 @@ class LiveJobPrinter:
             print(extra)
             if not extra.endswith("\n"):
                 print()
-    
+
     def _render_with_logger(self, status: JobStatus, elapsed_seconds: float, extra: str | None = None) -> None:
         """Simplified render using logger instead of fancy boxes."""
         if not self._logger:
             return
-        
+
         current_time = time.time()
-        
+
         # Log periodically during running/queued states
         if status.status in ("running", "queued"):
             if current_time - self._last_update_time >= self.update_interval:
-                self._logger.info("[%s] %s | Elapsed: %.1fs", 
+                self._logger.info("[%s] %s | Elapsed: %.1fs",
                                  status.job_id[:8], status.status, elapsed_seconds)
                 self._last_update_time = current_time
         elif status.status == "succeeded":

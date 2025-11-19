@@ -129,7 +129,7 @@ def _create_payload(
         filename, encoded = _encode_target_file(path)
         payload["target_file_name"] = filename
         payload["target_file_data"] = encoded
-    
+
     # Support passing target file data directly (for benchmarking)
     if target_file_data:
         payload["target_file_data"] = target_file_data
@@ -139,7 +139,7 @@ def _create_payload(
     length_spec = _normalize_length(length)
     if length_spec:
         payload["length"] = length_spec
-    
+
     # Support explicit length_min and length_max (for BoltzGen)
     if length_min is not None:
         payload["length_min"] = length_min
@@ -154,7 +154,7 @@ def _create_payload(
 
     if openfold_chains:
         payload["openfold_chains"] = [dict(chain) for chain in openfold_chains]
-    
+
     # Support ligand SMILES (for Boltz)
     if ligand:
         payload["ligand"] = ligand
