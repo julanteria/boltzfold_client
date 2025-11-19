@@ -38,10 +38,10 @@ if final_status.succeeded():
     print("\n✓ Design completed successfully!")
     if final_status.design_bundle_url:
         print(f"  Download all designs: {final_status.design_bundle_url}")
-    print(f"\nNext steps:")
-    print(f"  1. Download and extract the design bundle")
-    print(f"  2. Review designs in PyMOL or similar viewer")
-    print(f"  3. Select top candidates for validation")
+    print("\nNext steps:")
+    print("  1. Download and extract the design bundle")
+    print("  2. Review designs in PyMOL or similar viewer")
+    print("  3. Select top candidates for validation")
 else:
     print("\n✗ Design failed")
     print(f"  Error: {final_status.message}")

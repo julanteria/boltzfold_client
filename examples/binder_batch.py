@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """Example: Batch processing of binder designs against a target."""
 
-from pathlib import Path
-
 from boltzfold_client import (
     BoltzFoldClient,
-    chunked,
+    JobSummary,
     iter_fasta,
     load_first_sequence,
     monitor_jobs,
     print_job_summary,
-    JobSummary,
 )
 
 # Paths to your data
@@ -63,4 +60,4 @@ with open("successful_predictions.txt", "w") as f:
         if summary.succeeded():
             f.write(f"{summary.name}\t{summary.job_id}\t{summary.pdb_url}\n")
 
-print(f"\nSuccessful predictions saved to successful_predictions.txt")
+print("\nSuccessful predictions saved to successful_predictions.txt")

@@ -24,7 +24,7 @@ class _DummyHTTPClient:
 
 
 def test_build_payload_with_binder_and_target_strings() -> None:
-    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())
+    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())  # type: ignore[arg-type]
 
     payload = client.build_payload(
         model="boltz",
@@ -43,7 +43,7 @@ def test_build_payload_reads_sequences_from_paths(tmp_path) -> None:
     target_path = tmp_path / "target.fa"
     target_path.write_text(">target\nwxyz", encoding="utf-8")
 
-    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())
+    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())  # type: ignore[arg-type]
     payload = client.build_payload(
         model="boltz",
         sequence="ACDE",
@@ -59,7 +59,7 @@ def test_build_payload_rejects_duplicate_sequence_sources(tmp_path) -> None:
     binder_path = tmp_path / "binder.fa"
     binder_path.write_text("ACDE", encoding="utf-8")
 
-    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())
+    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())  # type: ignore[arg-type]
 
     with pytest.raises(ValueError):
         client.build_payload(
@@ -71,14 +71,14 @@ def test_build_payload_rejects_duplicate_sequence_sources(tmp_path) -> None:
 
 
 def test_submit_binder_target_prediction_sets_defaults() -> None:
-    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())
+    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())  # type: ignore[arg-type]
     captured: dict[str, object] = {}
 
     def _fake_submit(self, **params):
         captured.update(params)
         return PredictionResponse(job_id="abc123", raw={})
 
-    client.submit_prediction = types.MethodType(_fake_submit, client)
+    client.submit_prediction = types.MethodType(_fake_submit, client)  # type: ignore[method-assign]
     response = client.submit_binder_target_prediction(
         binder_sequence="ACDE",
         target_sequence="WXYZ",
@@ -94,14 +94,14 @@ def test_submit_binder_target_prediction_sets_defaults() -> None:
 
 
 def test_submit_bulk_predictions(monkeypatch) -> None:
-    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())
+    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())  # type: ignore[arg-type]
     calls: list[dict[str, Any]] = []
 
     def _fake_submit(self, **params):
         calls.append(params)
         return PredictionResponse(job_id=str(len(calls)), raw={})
 
-    client.submit_prediction = types.MethodType(_fake_submit, client)
+    client.submit_prediction = types.MethodType(_fake_submit, client)  # type: ignore[method-assign]
     responses = client.submit_bulk_predictions(
         [
             {"model": "boltz", "sequence": "AAAA"},
@@ -115,14 +115,14 @@ def test_submit_bulk_predictions(monkeypatch) -> None:
 
 
 def test_submit_binder_target_batch(monkeypatch) -> None:
-    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())
+    client = BoltzFoldClient(base_url="http://example.com", client=_DummyHTTPClient())  # type: ignore[arg-type]
     calls: list[dict[str, Any]] = []
 
     def _fake_submit(self, **params):
         calls.append(params)
         return PredictionResponse(job_id=str(len(calls)), raw={})
 
-    client.submit_binder_target_prediction = types.MethodType(_fake_submit, client)
+    client.submit_binder_target_prediction = types.MethodType(_fake_submit, client)  # type: ignore[method-assign]
     jobs = [
         {"binder_sequence": "AAAA", "target_sequence": "TTTT", "extra": {"job_name": "one"}},
         {"binder_sequence": "CCCC", "target_sequence": "GGGG", "extra": {"job_name": "two"}},
@@ -174,7 +174,7 @@ def test_monitor_jobs_tracks_multiple_jobs(monkeypatch) -> None:
     }
 
     class _StubClient:
-        def __init__(self):
+        def __init__(self) -> None:
             self.calls: dict[str, int] = {}
 
         def fetch_status(self, job_id: str) -> JobStatus:
@@ -185,7 +185,7 @@ def test_monitor_jobs_tracks_multiple_jobs(monkeypatch) -> None:
 
     client = _StubClient()
     printer = BulkJobPrinter(auto_clear=False, max_rows=4)
-    result = monitor_jobs(client, {"job1": "alpha", "job2": "beta"}, poll_interval=0.0, printer=printer)
+    result = monitor_jobs(client, {"job1": "alpha", "job2": "beta"}, poll_interval=0.0, printer=printer)  # type: ignore[arg-type]
 
     assert result["job1"].status == "succeeded"
     assert result["job2"].status == "failed"

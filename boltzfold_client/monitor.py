@@ -8,7 +8,8 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from logging import Logger
 from typing import Any
 
 from .client import BoltzFoldClient
@@ -27,7 +28,8 @@ def _is_notebook() -> bool:
     """Detect if we're running in a Jupyter notebook."""
     try:
         from IPython import get_ipython
-        return get_ipython() is not None and 'IPKernelApp' in get_ipython().config
+
+        return get_ipython() is not None and "IPKernelApp" in get_ipython().config
     except (ImportError, AttributeError):
         return False
 
@@ -50,12 +52,14 @@ class LiveJobPrinter:
     use_logger: bool = False  # If True, use logger instead of print
     logger_name: str = "boltzfold.monitor"
     update_interval: float = 10.0  # Seconds between updates when using logger
+    _logger: Logger | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         self._spinner = itertools.cycle(self.spinner_frames)
         self._last_update_time: float = 0.0
         if self.use_logger:
             import logging
+
             self._logger = logging.getLogger(self.logger_name)
         else:
             self._logger = None
@@ -109,8 +113,7 @@ class LiveJobPrinter:
         # Log periodically during running/queued states
         if status.status in ("running", "queued"):
             if current_time - self._last_update_time >= self.update_interval:
-                self._logger.info("[%s] %s | Elapsed: %.1fs",
-                                 status.job_id[:8], status.status, elapsed_seconds)
+                self._logger.info("[%s] %s | Elapsed: %.1fs", status.job_id[:8], status.status, elapsed_seconds)
                 self._last_update_time = current_time
         elif status.status == "succeeded":
             # Always log terminal states
